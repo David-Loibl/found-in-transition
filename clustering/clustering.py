@@ -45,7 +45,7 @@ def AverageEuclidianDifference(x, y):
 # read in the csv file to a pandas dataframe
 DataDirectory = '../data/'
 df = pd.DataFrame()
-for fname in glob(DataDirectory+'*interp*.csv'):
+for fname in glob(DataDirectory+'*interp-*.csv'):
     print(fname)
     this_df = pd.read_csv(fname, index_col='LS_DATE')
     # print('Number of IDS: ', len(this_df['RGIId'].unique()))
@@ -90,7 +90,7 @@ for i in range(n):
 # linkage matrix
 ln = linkage(cc, method='complete')
 # define the threshold for cutoff = kind of determines the number of clusters
-thr = 60
+thr = 175
 
 # compute cluster indices
 cl = fcluster(ln, thr, criterion = 'distance')
@@ -112,12 +112,12 @@ plt.clf()
 
 # make plots of the profile individually for each cluster
 # assign the cluster id to the dataframe
-for i in range(len(new_ids)):
-    df.loc[df.RGIId == new_ids[i], 'cluster_id'] = cl[i]
+for i in range(len(ids)):
+    df.loc[df.RGIId == ids[i], 'cluster_id'] = cl[i]
 
 df.to_csv(DataDirectory+'TSL+RGI_clustered.csv', index=False)
 
-fig, ax = plt.subplots(nrows=1, ncols=cl.max(), figsize=(10,5))
+fig, ax = plt.subplots(nrows=1, ncols=cl.max(), figsize=(12,5))
 # make a big subplot to allow sharing of axis labels
 fig.add_subplot(111, frameon=False)
 # hide tick and tick label of the big axes
@@ -133,4 +133,5 @@ for a in range(len(ax)):
 # plt.show()
 plt.xlabel('Year')
 plt.ylabel('Transient snow line altitude (m a.s.l.)')
+plt.tight_layout()
 plt.savefig(DataDirectory+'subplots_clustered.png', dpi=300)
