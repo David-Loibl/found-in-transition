@@ -99,7 +99,7 @@ print([int(c) for c in cl])
 
 # set colour palette: 8 class Set 1 from http://colorbrewer2.org
 N_colors = 8
-colors = list_of_hex_colours(N_colors, 'Set1')[:cl.max()]
+colors = list_of_hex_colours(N_colors, 'Set2')[:cl.max()]
 set_link_color_palette(colors)
 
 #plt.title('Hierarchical Clustering Dendrogram')
@@ -125,13 +125,13 @@ plt.tick_params(labelcolor='none', top='off', bottom='off', left='off', right='o
 #ax = ax.ravel()
 
 for i, c in enumerate(cl):
-    ax[c-1].plot(ts[i], c=colors[c-1])
+    ax[c-1].plot(ts[i], c=colors[c-1], lw=0.5)
 
 for a in range(len(ax)):
-    ax[a].set_ylim(4000,7000)
+    ax[a].set_ylim(3000,8000)
 
 # plt.show()
-plt.xlabel('Year')
-plt.ylabel('Transient snow line altitude (m a.s.l.)')
+plt.xlabel('Month from March 2013', fontsize=15)
+plt.ylabel('Transient snow line altitude (m a.s.l.)', labelpad=20, fontsize=15)
 plt.tight_layout()
 plt.savefig(DataDirectory+'subplots_clustered.png', dpi=300)
