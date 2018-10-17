@@ -39,7 +39,7 @@ def AverageEuclidianDifference(x, y):
     return d
 
 # read in the csv file to a pandas dataframe
-DataDirectory = '/home/fiona/geox/challenge/'
+DataDirectory = '../data/'
 df = pd.read_csv(DataDirectory+'TSL+RGI.csv',parse_dates=True, index_col='LS_DATE')
 print(df)
 
@@ -53,12 +53,12 @@ ids = df['RGIId'].unique()
 # array to store the TSL data for clustering
 ts = []
 new_ids = []
-n_glaciers = 50 # how many you want to cluster
+# n_glaciers = 50 # how many you want to cluster
 
 # get the data into the array and make a figure
 plt.figure()
 
-for i in range(n_glaciers):
+for i in range(len(ids)):
     reg_array = np.empty(len(dr))
     reg_array.fill(np.nan)
     # print(reg_array)
@@ -128,7 +128,7 @@ plt.clf()
 for i in range(len(new_ids)):
     df.loc[df.RGIId == new_ids[i], 'cluster_id'] = cl[i]
 
-fig, ax = plt.subplots(nrows=1, ncols=cl.max())
+fig, ax = plt.subplots(nrows=1, ncols=cl.max(), figsize=(10,5))
 # make a big subplot to allow sharing of axis labels
 fig.add_subplot(111, frameon=False)
 # hide tick and tick label of the big axes
@@ -141,7 +141,7 @@ for i, c in enumerate(cl):
 for a in range(len(ax)):
     ax[a].set_ylim(4000,7000)
 
-plt.show()
+# plt.show()
 plt.xlabel('Year')
 plt.ylabel('Transient snow line altitude (m a.s.l.)')
 plt.savefig(DataDirectory+'subplots_clustered.png', dpi=300)
