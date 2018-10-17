@@ -11,8 +11,10 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import sys
 
-data_path = str(sys.argv[1])
-month_param = int(sys.argv[2])
+#data_path = str(sys.argv[1])
+#month_param = int(sys.argv[2])
+data_path = '../data/'
+month_param = 1
 
 
 #%% read in TSL data
@@ -41,8 +43,6 @@ from scipy.stats import linregress
 
 #%% trend analysis
 
- # 5min for 1000
-#Nglacier=10
 
 i = 0
 
@@ -52,55 +52,41 @@ if month_param == 0:
     df_trend['Y_slope'] = np.zeros(len(df_RGI))
     df_trend['Y_r'] = np.zeros(len(df_RGI))
 else:
-    df_meas_month = df_TSL.index.map(lambda x: x.month) == month_param
+    df_meas_month = df_TSL.iloc[df_TSL.index.month == month_param,:]
     # df_RGI.index.month == month_param].resample('AS').mean()
-    df_trend['M'+ str(month_param) + 'slope'] = np.zeros(len(df_meas_month)) * np.nan
-    df_trend['M'+ str(month_param) + '_r'] = np.zeros(len(df_meas_month)) * np.nan
+    df_trend['M'+ str(month_param) + '_slope'] = np.zeros(len(df_trend)) * np.nan
+    df_trend['M'+ str(month_param) + '_r'] = np.zeros(len(df_trend)) * np.nan
 
 
-Nglacier=len(df_trend['RGIId'].unique())
+ # 5min for 1000
+Nglacier=10
+#Nglacier=len(df_trend['RGIId'].unique())
 
 for RGI in df_RGI.RGIId[0:Nglacier]:
+    print('Durchlauf ' + str(i))
     # subset data
-    tmp =  df_TSL.TSL_ELEV[df_TSL.RGIId == RGI ]
+    if month_param == 0:
+        ydata =  df_meas_month.TSL_ELEV[df_meas_month.RGIId == RGI ].resample('AS').max()
+    else:
+        ydata =  df_meas_month.TSL_ELEV[df_meas_month.RGIId == RGI ].resample('AS').mean()
     
     #fig, ax = plt.subplots()
     
-    #annual
-    max_TSL = tmp.resample('AS').max()
-    
-    ydata = max_TSL
-    xdata = ydata.index.to_julian_date()/365
-    #[popt, pcov] = curve_fit( linear, xdata, ydata)
-    [slope,offset,r,tmp2,tmp3] = linregress(xdata,ydata)
-    df_trend.iloc[i,1] = slope
-    df_trend.iloc[i,2] = r
+    if len(ydata)>1:
+        ydata = ydata[~np.isnan(ydata)]
+        xdata = ydata.index.to_julian_date()/365
+        #[popt, pcov] = curve_fit( linear, xdata, ydata)
+        [slope,offset,r,tmp2,tmp3] = linregress(xdata,ydata)
+        df_trend.iloc[i,1] = slope
+        df_trend.iloc[i,2] = r
     
     #ax.scatter( xdata, ydata , label="maximum TSL", color='r')
     #ax.plot( xdata, linear(xdata, offset, slope), label=('linear fit, trend=%0.4f m/year' % (slope)), color='r' )
     
-
-
-
-    #monthly
-    
-    ydata = tmp[tmp.index.month == month_param].resample('AS').mean()
-    if len(ydata)>1:
-        ydata = ydata[~np.isnan(ydata)]
-        xdata = ydata.index.to_julian_date()/365
-        [slope,offset,r,tmp2,tmp3] = linregress(xdata,ydata)
-        df_trend.iloc[i,month_param*2+1] = slope
-        df_trend.iloc[i,month_param*2+2] = r
-        
-        #ax.scatter( xdata, ydata , label="maximum TSL", color='g')
-        #ax.plot( xdata, linear(xdata, offset, slope), label=('linear fit, trend=%0.4f m/year' % (slope)), color='r' )
-
     i = i+1
     
-del tmp; del max_TSL; del ydata; del xdata; del slope; del offset
+del ydata; del xdata; del slope; del offset
 del r; del tmp2; del tmp3; del i; 
-
-
 
 #plt.hist(df_trend['Y_slope'][~np.isnan(df_trend['Y_slope'])],bins=40)
 
