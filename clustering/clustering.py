@@ -129,6 +129,10 @@ for i in range(len(new_ids)):
     df.loc[df.RGIId == new_ids[i], 'cluster_id'] = cl[i]
 
 fig, ax = plt.subplots(nrows=1, ncols=cl.max())
+# make a big subplot to allow sharing of axis labels
+fig.add_subplot(111, frameon=False)
+# hide tick and tick label of the big axes
+plt.tick_params(labelcolor='none', top='off', bottom='off', left='off', right='off')
 #ax = ax.ravel()
 
 for i, c in enumerate(cl):
@@ -138,4 +142,6 @@ for a in range(len(ax)):
     ax[a].set_ylim(4000,7000)
 
 plt.show()
+plt.xlabel('Year')
+plt.ylabel('Transient snow line altitude (m a.s.l.)')
 plt.savefig(DataDirectory+'subplots_clustered.png', dpi=300)
