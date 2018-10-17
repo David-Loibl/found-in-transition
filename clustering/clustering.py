@@ -2,6 +2,9 @@
 # Geo.X autumn school 2018
 
 # import modules
+import matplotlib
+matplotlib.use('Agg')
+
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -9,6 +12,7 @@ from scipy.cluster.hierarchy import dendrogram, linkage, fcluster, set_link_colo
 import math
 import matplotlib.colors as mcolors
 import matplotlib.cm as cm
+from glob import glob
 
 def list_of_hex_colours(N, base_cmap):
     """
@@ -40,43 +44,25 @@ def AverageEuclidianDifference(x, y):
 
 # read in the csv file to a pandas dataframe
 DataDirectory = '../data/'
-df = pd.read_csv(DataDirectory+'TSL+RGI.csv',parse_dates=True, index_col='LS_DATE')
+df = pd.DataFrame()
+for fname in glob(DataDirectory+'*interp*.csv'):
+    print(fname)
+    this_df = pd.read_csv(fname, index_col='LS_DATE')
+    # print('Number of IDS: ', len(this_df['RGIId'].unique()))
+    df = df.append(this_df)
+
 print(df)
+ids = df.RGIId.unique()
+print("N GLACIERS: ", len(ids))
 
+# # read in the full DataFrame
+# full_df = pd.read_csv(DataDirectory+'TSL+RGI.csv')
+# full_df = full_df[full_df['RGIId'].isin(ids)]
+# full_df.to_csv(DataDirectory+'TSL+RGI_interp_only.csv', index=False)
 
-# new dataframe with the regularly spaced time data
-dr = pd.date_range(start='2013-03-31', end='2018-12-31',freq='M')
-
-# get the IDs of each glacier
-ids = df['RGIId'].unique()
-
-# array to store the TSL data for clustering
-ts = []
-new_ids = []
-# n_glaciers = 50 # how many you want to cluster
-
-# get the data into the array and make a figure
-plt.figure()
-
-for i in range(len(ids)):
-    reg_array = np.empty(len(dr))
-    reg_array.fill(np.nan)
-    # print(reg_array)
-    # mask the dataframe to this id
-    this_df = df[df['RGIId'] == ids[i]]
-    # resample to monthly date
-    monthly_tsl = this_df.TSL_ELEV.resample('M').mean()
-    monthly_tsl = monthly_tsl.interpolate(method='linear')
-    if(monthly_tsl.index[0] == dr[0]):
-        plt.plot(monthly_tsl)
-        ts.append(monthly_tsl)
-        new_ids.append(ids[i])
-
+# get the data into a list for clustering
+ts = df.groupby('RGIId')['TSL_ELEV'].apply(list)
 print(ts)
-
-plt.savefig(DataDirectory+'tsl_monthly.png', dpi=300)
-# # plt.show()
-plt.clf()
 
 print("Starting the clustering...")
 
@@ -88,8 +74,9 @@ cc = np.zeros(int(n * (n - 1) / 2))
 k = 0
 for i in range(n):
     for j in range(i+1, n):
-        tsi = ts[i]
-        tsj = ts[j]
+        tsi = np.asarray(ts.iloc[i])
+        tsj = np.asarray(ts.iloc[j])
+        # print(tsi, tsj)
         if len(tsi) > len(tsj):
             tsi = tsi[:len(tsj)]
         else:
@@ -127,6 +114,8 @@ plt.clf()
 # assign the cluster id to the dataframe
 for i in range(len(new_ids)):
     df.loc[df.RGIId == new_ids[i], 'cluster_id'] = cl[i]
+
+df.to_csv(DataDirectory+'TSL+RGI_clustered.csv', index=False)
 
 fig, ax = plt.subplots(nrows=1, ncols=cl.max(), figsize=(10,5))
 # make a big subplot to allow sharing of axis labels
