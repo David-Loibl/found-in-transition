@@ -56,8 +56,8 @@ ids = df.RGIId.unique()
 print("N GLACIERS: ", len(ids))
 
 # # read in the full DataFrame
-# full_df = pd.read_csv(DataDirectory+'TSL+RGI.csv')
-# full_df = full_df[full_df['RGIId'].isin(ids)]
+full_df = pd.read_csv(DataDirectory+'TSL+RGI.csv')
+full_df = full_df[full_df['RGIId'].isin(ids)]
 # full_df.to_csv(DataDirectory+'TSL+RGI_interp_only.csv', index=False)
 
 # get the data into a list for clustering
@@ -113,9 +113,9 @@ plt.clf()
 # make plots of the profile individually for each cluster
 # assign the cluster id to the dataframe
 for i in range(len(ids)):
-    df.loc[df.RGIId == ids[i], 'cluster_id'] = cl[i]
+    full_df.loc[full_df.RGIId == ids[i], 'cluster_id'] = cl[i]
 
-df.to_csv(DataDirectory+'TSL+RGI_clustered.csv', index=False)
+full_df.to_csv(DataDirectory+'TSL+RGI_clustered.csv', index=False)
 
 fig, ax = plt.subplots(nrows=1, ncols=cl.max(), figsize=(12,5))
 # make a big subplot to allow sharing of axis labels

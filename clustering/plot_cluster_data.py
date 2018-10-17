@@ -39,7 +39,7 @@ def MakeBoxPlotByCluster():
     final_df = final_df[final_df['RGIId'].isin(ids)]
     final_df = final_df.merge(df, left_on = "RGIId", right_on = "RGIId")
 
-    final_df.to_csv(DataDirectory'TSL+RGI_clustered_final.csv')
+    final_df.to_csv(DataDirectory+'TSL+RGI_clustered_final.csv')
 
     # for id in ids:
     #     this_df = df[df.RGIId == id]
