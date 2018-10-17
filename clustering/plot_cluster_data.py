@@ -3,6 +3,7 @@ import matplotlib.cm as cm
 import matplotlib.colors as mcolors
 import matplotlib.pyplot as plt
 import numpy as np
+import pickle
 
 # Plotting scripts for the csv with the cluster data
 def list_of_hex_colours(N, base_cmap):
@@ -32,11 +33,25 @@ def MakeBoxPlotByCluster():
     df = pd.read_csv(DataDirectory+'TSL+RGI_clustered.csv')
     df = df[np.isnan(df['cluster_id']) == False]
     df = df.sort_values(by='cluster_id')
+    ids = df.RGIId.unique()
+
+    final_df = pd.read_csv(DataDirectory+'TSL+RGI.csv')
+    final_df = final_df[final_df['RGIId'].isin(ids)]
+    final_df = final_df.merge(df, left_on = "RGIId", right_on = "RGIId")
+
+    final_df.to_csv(DataDirectory'TSL+RGI_clustered_final.csv')
+
+    # for id in ids:
+    #     this_df = df[df.RGIId == id]
+    #     cluster = this_df.iloc[0]['cluster_id']
+    #     final_df.loc[final_df.RGIId == id, 'cluster_id'] = cluster
+
+    # add the cluster id
 
     print("========SOME CLUSTER STATISTICS=========")
-    clusters = df['cluster_id'].unique()
+    clusters = final_df['cluster_id'].unique()
     for cl in clusters:
-        this_df = df[df['cluster_id'] == cl]
+        this_df = final_df[final_df['cluster_id'] == cl]
         print("Cluster {}, median slope = {}".format(cl, this_df['Slope'].median()))
         print("Cluster {}, median aspect = {}".format(cl, this_df['Aspect'].median()))
         print("Cluster {}, median elevation = {}".format(cl, this_df['Zmed'].median()))
@@ -63,7 +78,7 @@ def MakeBoxPlotByCluster():
         this_ax.set_ylabel(labels[i])
         this_ax.set_xlabel('')
         # make the boxplot and return the dict with the boxplot properties
-        bp_dict = df.boxplot(column=col_keys[i], by=['cluster_id'], return_type='both', patch_artist=True, flierprops=flierprops, ax=this_ax)
+        bp_dict = final_df.boxplot(column=col_keys[i], by=['cluster_id'], return_type='both', patch_artist=True, flierprops=flierprops, ax=this_ax)
         # make the median lines black
         #[[item.set_color('k') for item in bp_dict[key]['medians']] for key in bp_dict.keys()]
 
@@ -95,7 +110,7 @@ def MakeBoxPlotByCluster():
 
         ax.grid(color='0.8', linestyle='--', which='major', zorder=1)
         plt.subplots_adjust(wspace=0.3,left=0.25,right=0.9, hspace=0.35, bottom=0.1)
-        x_labels = [str((int(x))) for x in df.cluster_id.unique()]
+        x_labels = [str((int(x))) for x in final_df.cluster_id.unique()]
         ax.set_xticklabels(x_labels, fontsize=12)
         #print(boxplot)
     plt.suptitle('')
@@ -108,5 +123,56 @@ def MakeBoxPlotByCluster():
     plt.savefig(DataDirectory+'cluster_boxplot.png', dpi=300)
     plt.clf()
 
+def ReadClimateData():
+    # read the csv and get some info
+    df = pd.read_csv(DataDirectory+'TSL+RGI_clustered.csv')
+    df = df[np.isnan(df['cluster_id']) == False]
+    df = df.sort_values(by='cluster_id')
+
+    # loop through each glacier ID and open the climate data
+    ids = df['RGIId'].unique()
+    for id in ids:
+        this_df = df[df['RGIId'] == id]
+        with open(DataDirectory+'/era5/{}.pkl'.format(id), 'rb') as f:
+            ts = pickle.load(f)
+            # mask to only include data within the landsat image times
+            mask = ts.index >= '2013-03-31'
+            ts = ts.loc[mask]
+
+            # now get the mean temperature for this ID
+            mean_temp = ts.tmean.mean()
+            df.loc[df.RGIId == id, 'mean_temp'] = mean_temp
+
+    print(ts.columns)
+
+    #print(df)
+
+def MakeProfilesByCluster():
+
+    df = pd.read_csv(DataDirectory+'TSL+RGI_clustered.csv')
+    df = df[np.isnan(df['cluster_id']) == False]
+    df = df.sort_values(by='cluster_id')
+
+    cl = df['cluster_id'].unique()
+
+    fig, ax = plt.subplots(nrows=1, ncols=cl.max(), figsize=(10,5))
+    # make a big subplot to allow sharing of axis labels
+    fig.add_subplot(111, frameon=False)
+    # hide tick and tick label of the big axes
+    plt.tick_params(labelcolor='none', top='off', bottom='off', left='off', right='off')
+    #ax = ax.ravel()
+
+    for i, c in enumerate(cl):
+        ax[c-1].plot(ts[i], c=colors[c-1])
+
+    for a in range(len(ax)):
+        ax[a].set_ylim(4000,7000)
+
+    # plt.show()
+    plt.xlabel('Year')
+    plt.ylabel('Transient snow line altitude (m a.s.l.)')
+    plt.savefig(DataDirectory+'subplots_clustered.png', dpi=300)
+
 DataDirectory = '../data/'
 MakeBoxPlotByCluster()
+#ReadClimateData()
