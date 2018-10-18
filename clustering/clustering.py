@@ -45,7 +45,7 @@ def AverageEuclidianDifference(x, y):
 # read in the csv file to a pandas dataframe
 DataDirectory = '../data/'
 df = pd.DataFrame()
-for fname in glob(DataDirectory+'*interp*.csv'):
+for fname in glob(DataDirectory+'*interp-*.csv'):
     print(fname)
     this_df = pd.read_csv(fname, index_col='LS_DATE')
     # print('Number of IDS: ', len(this_df['RGIId'].unique()))
@@ -56,8 +56,8 @@ ids = df.RGIId.unique()
 print("N GLACIERS: ", len(ids))
 
 # # read in the full DataFrame
-# full_df = pd.read_csv(DataDirectory+'TSL+RGI.csv')
-# full_df = full_df[full_df['RGIId'].isin(ids)]
+full_df = pd.read_csv(DataDirectory+'TSL+RGI.csv')
+full_df = full_df[full_df['RGIId'].isin(ids)]
 # full_df.to_csv(DataDirectory+'TSL+RGI_interp_only.csv', index=False)
 
 # get the data into a list for clustering
@@ -90,7 +90,7 @@ for i in range(n):
 # linkage matrix
 ln = linkage(cc, method='complete')
 # define the threshold for cutoff = kind of determines the number of clusters
-thr = 60
+thr = 175
 
 # compute cluster indices
 cl = fcluster(ln, thr, criterion = 'distance')
@@ -99,7 +99,7 @@ print([int(c) for c in cl])
 
 # set colour palette: 8 class Set 1 from http://colorbrewer2.org
 N_colors = 8
-colors = list_of_hex_colours(N_colors, 'Set1')[:cl.max()]
+colors = list_of_hex_colours(N_colors, 'Set2')[:cl.max()]
 set_link_color_palette(colors)
 
 #plt.title('Hierarchical Clustering Dendrogram')
@@ -112,12 +112,12 @@ plt.clf()
 
 # make plots of the profile individually for each cluster
 # assign the cluster id to the dataframe
-for i in range(len(new_ids)):
-    df.loc[df.RGIId == new_ids[i], 'cluster_id'] = cl[i]
+for i in range(len(ids)):
+    full_df.loc[full_df.RGIId == ids[i], 'cluster_id'] = cl[i]
 
-df.to_csv(DataDirectory+'TSL+RGI_clustered.csv', index=False)
+full_df.to_csv(DataDirectory+'TSL+RGI_clustered.csv', index=False)
 
-fig, ax = plt.subplots(nrows=1, ncols=cl.max(), figsize=(10,5))
+fig, ax = plt.subplots(nrows=1, ncols=cl.max(), figsize=(12,5))
 # make a big subplot to allow sharing of axis labels
 fig.add_subplot(111, frameon=False)
 # hide tick and tick label of the big axes
@@ -125,12 +125,13 @@ plt.tick_params(labelcolor='none', top='off', bottom='off', left='off', right='o
 #ax = ax.ravel()
 
 for i, c in enumerate(cl):
-    ax[c-1].plot(ts[i], c=colors[c-1])
+    ax[c-1].plot(ts[i], c=colors[c-1], lw=0.5)
 
 for a in range(len(ax)):
-    ax[a].set_ylim(4000,7000)
+    ax[a].set_ylim(3000,8000)
 
 # plt.show()
-plt.xlabel('Year')
-plt.ylabel('Transient snow line altitude (m a.s.l.)')
+plt.xlabel('Month from March 2013', fontsize=15)
+plt.ylabel('Transient snow line altitude (m a.s.l.)', labelpad=20, fontsize=15)
+plt.tight_layout()
 plt.savefig(DataDirectory+'subplots_clustered.png', dpi=300)
