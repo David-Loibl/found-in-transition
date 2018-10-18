@@ -1,3 +1,6 @@
+import matplotlib
+matplotlib.use('Agg')
+
 import pandas as pd
 import matplotlib.cm as cm
 import matplotlib.colors as mcolors
@@ -69,8 +72,8 @@ def MakeBoxPlotByCluster():
     # hide tick and tick label of the big axes
     plt.tick_params(labelcolor='none', top='off', bottom='off', left='off', right='off')
 
-    col_keys = ['Slope', 'Aspect', 'Zmed', 'TSL_ELEV']
-    labels = ['Slope', 'Aspect', 'Median elevation (m)', 'Transient snow line (m a.s.l.)']
+    col_keys = ['Slope', 'Aspect', 'Zmed', 'CenLat']
+    labels = ['Slope', 'Aspect', 'Median elevation (m)', 'Latitude']
 
     N_colors = 8
     colors = list_of_hex_colours(N_colors, 'Set2')
