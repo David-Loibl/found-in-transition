@@ -1,0 +1,128 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Tue Oct 30 12:58:11 2018
+
+@author: jnitzbon
+"""
+
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import pickle
+from scipy import stats
+import time
+
+def linear(x, const, a):
+	return const + a * x
+
+#%%
+
+df_RGI = pd.read_csv( '../data/RGI-Asia/rgi60_Asia.csv' , header=0, index_col=0)
+df_RGI = df_RGI[ df_RGI.Area > 0.5 ]
+
+#%% work with testset 
+#nTest = 100
+#np.random.seed(0)
+#testset = [ df_RGI.index[i] for i in np.random.randint(low=0, high=len(df_RGI.index), size=nTest) ]
+
+#df_RGI = df_RGI[ df_RGI.index.isin( testset ) ]
+
+df_RGI_ERA5trends = pd.DataFrame( index=df_RGI.index )
+
+nGlac = len(df_RGI)
+
+
+
+#%% initialize dataframe for trends
+
+obs = [ 'tmean', 'tp', 'Gmean', 'wsmean' ]
+samp = [ 'Annual', 'JFM', 'AMJ', 'JAS', 'OND' ]
+
+for o in obs:
+    for s in samp:
+        df_RGI_ERA5trends[str(o+s+'_trend')]=np.nan
+        df_RGI_ERA5trends[str(o+s+'_r')]=np.nan
+
+
+#%% do everything for an example glacier first
+
+for rgi in df_RGI.index:
+    
+    tstart=time.time()
+    
+    print('At glacier ' + rgi + ' (' + str(df_RGI.index.get_loc(rgi)) + '/' + str(nGlac) + ')' )
+    
+    print('\t' + 'Loading ERA5 data ...')
+
+
+    with open( str( '../data/era5/' + rgi + '.pkl' ), 'rb') as f:    
+        data = pickle.load(f)   
+    
+    # calculate all trends and correlation coefficients
+    seasonmap = {'JFM':3,'AMJ':6,'JAS':9,'OND':12}
+    for o in obs:
+        
+        print('\t' + 'Calculating trends in ' + o + ' ...')
+        
+        # observables which are averaged over sampling period
+        if o in ['tmean', 'Gmean', 'wsmean' ]:
+        
+            #annual
+            s='Annual'
+            
+            ydata = data[o].resample('A').mean()
+            xdata = ydata.index.to_julian_date()    
+            trend, offset, r, p, trend_unc = stats.linregress(xdata, ydata)
+            
+            df_RGI_ERA5trends.loc[ rgi, str(o+s+'_trend') ] = trend
+            df_RGI_ERA5trends.loc[ rgi, str(o+s+'_r') ] = r
+            
+            #seasonal
+            for s in seasonmap.keys():
+                ydata = data[o].resample('Q-DEC').mean()
+                ydata = ydata[ ydata.index.month==seasonmap[s] ]
+                xdata = ydata.index.to_julian_date()    
+                trend, offset, r, p, trend_unc = stats.linregress(xdata, ydata)
+                
+                df_RGI_ERA5trends.loc[ rgi, str(o+s+'_trend') ] = trend
+                df_RGI_ERA5trends.loc[ rgi, str(o+s+'_r') ] = r
+                
+        elif o in ['tp']:
+            
+            #annual
+            s='Annual'
+            
+            ydata = data[o].resample('A').sum()
+            xdata = ydata.index.to_julian_date()    
+            trend, offset, r, p, trend_unc = stats.linregress(xdata, ydata)
+            
+            df_RGI_ERA5trends.loc[ rgi, str(o+s+'_trend') ] = trend
+            df_RGI_ERA5trends.loc[ rgi, str(o+s+'_r') ] = r
+            
+            #seasonal
+            for s in seasonmap.keys():
+                ydata = data[o].resample('Q-DEC').sum()
+                ydata = ydata[ ydata.index.month==seasonmap[s] ]
+                xdata = ydata.index.to_julian_date()    
+                trend, offset, r, p, trend_unc = stats.linregress(xdata, ydata)
+                
+                df_RGI_ERA5trends.loc[ rgi, str(o+s+'_trend') ] = trend
+                df_RGI_ERA5trends.loc[ rgi, str(o+s+'_r') ] = r
+            
+        else:
+            print('Invalid observable...')
+            
+    tend=time.time()
+    
+    print('\t' + 'Done in ' + str(tend-tstart) + ' sec.')
+    
+#%% 
+    
+df_RGI = df_RGI.join(df_RGI_ERA5trends)
+
+#%%
+
+df_RGI.to_csv('../data/RGI+ERA5trends.csv')
+
+
