@@ -20,21 +20,23 @@ def linear(x, const, a):
 
 df_RGI = pd.read_csv( '../data/RGI-Asia/rgi60_Asia.csv' , header=0, index_col=0)
 df_RGI = df_RGI[ df_RGI.Area > 0.5 ]
+nGlac = len(df_RGI)
 
 #%% work with testset 
-#nTest = 100
-#np.random.seed(0)
-#testset = [ df_RGI.index[i] for i in np.random.randint(low=0, high=len(df_RGI.index), size=nTest) ]
+nTest = 200
+np.random.seed(0)
+testset = [ df_RGI.index[i] for i in np.random.randint(low=0, high=len(df_RGI.index), size=nTest) ]
+df_RGI = df_RGI[ df_RGI.index.isin( testset ) ]
+nGlac = len(df_RGI)
 
-#df_RGI = df_RGI[ df_RGI.index.isin( testset ) ]
+#%% initialize dataframe for trends
+
 
 df_RGI_ERA5trends = pd.DataFrame( index=df_RGI.index )
 
-nGlac = len(df_RGI)
 
 
 
-#%% initialize dataframe for trends
 
 obs = [ 'tmean', 'tp', 'Gmean', 'wsmean' ]
 samp = [ 'Annual', 'JFM', 'AMJ', 'JAS', 'OND' ]
@@ -43,6 +45,7 @@ for o in obs:
     for s in samp:
         df_RGI_ERA5trends[str(o+s+'_trend')]=np.nan
         df_RGI_ERA5trends[str(o+s+'_r')]=np.nan
+        df_RGI_ERA5trends[str(o+s+'_p')]=np.nan
 
 
 #%% do everything for an example glacier first
@@ -77,6 +80,7 @@ for rgi in df_RGI.index:
             
             df_RGI_ERA5trends.loc[ rgi, str(o+s+'_trend') ] = trend
             df_RGI_ERA5trends.loc[ rgi, str(o+s+'_r') ] = r
+            df_RGI_ERA5trends.loc[ rgi, str(o+s+'_p') ] = p
             
             #seasonal
             for s in seasonmap.keys():
@@ -87,6 +91,7 @@ for rgi in df_RGI.index:
                 
                 df_RGI_ERA5trends.loc[ rgi, str(o+s+'_trend') ] = trend
                 df_RGI_ERA5trends.loc[ rgi, str(o+s+'_r') ] = r
+                df_RGI_ERA5trends.loc[ rgi, str(o+s+'_p') ] = p
                 
         elif o in ['tp']:
             
@@ -99,6 +104,7 @@ for rgi in df_RGI.index:
             
             df_RGI_ERA5trends.loc[ rgi, str(o+s+'_trend') ] = trend
             df_RGI_ERA5trends.loc[ rgi, str(o+s+'_r') ] = r
+            df_RGI_ERA5trends.loc[ rgi, str(o+s+'_p') ] = p
             
             #seasonal
             for s in seasonmap.keys():
@@ -109,6 +115,7 @@ for rgi in df_RGI.index:
                 
                 df_RGI_ERA5trends.loc[ rgi, str(o+s+'_trend') ] = trend
                 df_RGI_ERA5trends.loc[ rgi, str(o+s+'_r') ] = r
+                df_RGI_ERA5trends.loc[ rgi, str(o+s+'_p') ] = p
             
         else:
             print('Invalid observable...')
@@ -118,11 +125,9 @@ for rgi in df_RGI.index:
     print('\t' + 'Done in ' + str(tend-tstart) + ' sec.')
     
 #%% 
-    
-df_RGI = df_RGI.join(df_RGI_ERA5trends)
+df_RGI_ERA5trends.to_csv('../data/ERA5trends_testset.csv')
 
 #%%
-
-df_RGI.to_csv('../data/RGI+ERA5trends.csv')
+#df_RGI_ERA5trends.to_csv('../data/ERA5trends_full.csv')
 
 
