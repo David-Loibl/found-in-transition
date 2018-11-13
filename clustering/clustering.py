@@ -45,8 +45,8 @@ def AverageEuclidianDifference(x, y):
 # read in the csv file to a pandas dataframe
 DataDirectory = '../data/'
 df = pd.DataFrame()
-# for fname in glob(DataDirectory+'*interp-*.csv'):
-for fname in glob(DataDirectory+'*interp-0-1000.csv'):
+for fname in glob(DataDirectory+'*interp-*.csv'):
+#for fname in glob(DataDirectory+'*interp-0-1000.csv'):
     print(fname)
     this_df = pd.read_csv(fname, index_col='LS_DATE')
     # print('Number of IDS: ', len(this_df['RGIId'].unique()))
