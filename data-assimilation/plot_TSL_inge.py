@@ -11,10 +11,10 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import sys
 
-#data_path = str(sys.argv[1])
-#month_param = int(sys.argv[2])
-data_path = '../data/'
-month_param = 1
+data_path = str(sys.argv[1])
+month_param = int(sys.argv[2])
+# data_path = '../data/'
+# month_param = 1
 
 
 #%% read in TSL data
@@ -58,9 +58,9 @@ else:
     df_trend['M'+ str(month_param) + '_r'] = np.zeros(len(df_trend)) * np.nan
 
 
- # 5min for 1000
-Nglacier=10
-#Nglacier=len(df_trend['RGIId'].unique())
+# 5min for 1000
+# Nglacier=10
+Nglacier=len(df_trend['RGIId'].unique())
 
 for RGI in df_RGI.RGIId[0:Nglacier]:
     print('Durchlauf ' + str(i))
