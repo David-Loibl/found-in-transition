@@ -45,7 +45,8 @@ def AverageEuclidianDifference(x, y):
 # read in the csv file to a pandas dataframe
 DataDirectory = '../data/'
 df = pd.DataFrame()
-for fname in glob(DataDirectory+'*interp-*.csv'):
+# for fname in glob(DataDirectory+'*interp-*.csv'):
+for fname in glob(DataDirectory+'*interp-0-1000.csv'):
     print(fname)
     this_df = pd.read_csv(fname, index_col='LS_DATE')
     # print('Number of IDS: ', len(this_df['RGIId'].unique()))
@@ -81,16 +82,20 @@ for i in range(n):
             tsi = tsi[:len(tsj)]
         else:
             tsj = tsj[:len(tsi)]
-        #cc[k] = np.corrcoef(tsi, tsj)[0, 1]
-        cc[k] = AverageEuclidianDifference(tsi,tsj)
+        cc[k] = np.corrcoef(tsi, tsj)[0, 1]
+        #cc[k] = AverageEuclidianDifference(tsi,tsj)
         k += 1
 
 # take arccos of the correlation coefficients
 #d = np.arccos(cc)
+d = np.sqrt(2*(1 - cc))
+# print(cc)
 # linkage matrix
-ln = linkage(cc, method='complete')
+ln = linkage(d, method='complete')
+#ln = linkage(cc, method='complete')
 # define the threshold for cutoff = kind of determines the number of clusters
-thr = 175
+#thr = 175
+thr = 1.6
 
 # compute cluster indices
 cl = fcluster(ln, thr, criterion = 'distance')
@@ -98,13 +103,13 @@ print("I've finished! I found {} clusters for you :)".format(cl.max()))
 print([int(c) for c in cl])
 
 # set colour palette: 8 class Set 1 from http://colorbrewer2.org
-N_colors = 8
-colors = list_of_hex_colours(N_colors, 'Set2')[:cl.max()]
+N_colors = cl.max()
+colors = list_of_hex_colours(N_colors, 'Set2')
 set_link_color_palette(colors)
 
 #plt.title('Hierarchical Clustering Dendrogram')
 plt.ylabel('distance', fontsize=14)
-R = dendrogram(ln, color_threshold=thr+0.5, above_threshold_color='k',no_labels=True)
+R = dendrogram(ln, color_threshold=thr, above_threshold_color='k',no_labels=True)
 
 plt.axhline(y = thr, color = 'r', ls = '--')
 plt.savefig(DataDirectory+'tsl_dendrogram.png', dpi=300)
@@ -128,7 +133,7 @@ for i, c in enumerate(cl):
     ax[c-1].plot(ts[i], c=colors[c-1], lw=0.5)
 
 for a in range(len(ax)):
-    ax[a].set_ylim(3000,8000)
+    ax[a].set_ylim(3000,7000)
 
 # plt.show()
 plt.xlabel('Month from March 2013', fontsize=15)

@@ -260,6 +260,6 @@ def MakeProfilesByCluster():
     plt.savefig(DataDirectory+'subplots_clustered.png', dpi=300)
 
 DataDirectory = '../data/'
-#MakeBoxPlotByCluster()
-ReadClimateData()
+MakeBoxPlotByCluster()
+# ReadClimateData()
 #MakeProfilesByCluster()
