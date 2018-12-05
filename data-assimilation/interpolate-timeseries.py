@@ -18,7 +18,7 @@ df = pd.read_csv(data_path+'TSL+RGI.csv',parse_dates=True, index_col='LS_DATE')
 
 
 # new dataframe with the regularly spaced time data
-dr = pd.date_range(start='2013-03-31', end='2018-12-31',freq='M')
+dr = pd.date_range(start=df.index.min(), end=df.index.max(),freq='M')
 
 # get the IDs of each glacier
 ids = df['RGIId'].unique()
@@ -26,12 +26,12 @@ ids = df['RGIId'].unique()
 # array to store the TSL data for clustering
 # ts = []
 new_ids = []
-n_glaciers = 50 # how many you want to cluster
 
 # get the data into the array and make a figure
 # plt.figure()
 df_interpolate = pd.DataFrame() # columns=['RGIId', 'Month', 'TSL_ELEV']
 new_df = pd.DataFrame()
+
 
 for i in range(start_glacier, end_glacier):
     # print(reg_array)
@@ -40,17 +40,12 @@ for i in range(start_glacier, end_glacier):
     # resample to monthly date
     monthly_tsl = this_df.TSL_ELEV.resample('M').mean()
     monthly_tsl = monthly_tsl.interpolate(method='linear')
-    if(monthly_tsl.index[0] == dr[0]):
-        new_df  = monthly_tsl.to_frame()
-        new_df['RGIId'] = ids[i]
-        df_interpolate = df_interpolate.append(new_df)
-        # plt.plot(monthly_tsl)
-        #monthly_ds = {'RGIId': ids[i], 'Month': monthly_tsl.index, 'TSL_ELEV': monthly_tsl.values}
-        #{'col1': [1, 2], 'col2': [3, 4]}
-        #= pd.DataFrame(data=d)
-        # df_interpolate = df_interpolate.append(, ignore_index=True)
-        #ts.append(monthly_tsl)
-        #new_ids.append(ids[i])
+
+    # reindex and add nans at the start of the time series
+    monthly_tsl = monthly_tsl.reindex(dr, fill_value=np.nan)
+    new_df  = monthly_tsl.to_frame()
+    new_df['RGIId'] = ids[i]
+    df_interpolate = df_interpolate.append(new_df)
 
 
 # Write merged DataFrames to csv files
