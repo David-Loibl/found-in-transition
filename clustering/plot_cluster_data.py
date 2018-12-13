@@ -123,7 +123,7 @@ def MakeBoxPlotByCluster():
         # ax.set_ylabel('Catchment relief (m)', fontsize=14)
 
     #plt.subplots_adjust(left=0.2)
-    plt.savefig(DataDirectory+'cluster_boxplot.png', dpi=300)
+    plt.savefig(DataDirectory+'cluster_boxplot.png', dpi=300, transparent=True)
     plt.clf()
 
 def ReadClimateData():
@@ -224,7 +224,7 @@ def ReadClimateData():
         # ax.set_ylabel('Catchment relief (m)', fontsize=14)
 
     #plt.subplots_adjust(left=0.2)
-    plt.savefig(DataDirectory+'cluster_boxplot_climate.png', dpi=300)
+    plt.savefig(DataDirectory+'cluster_boxplot_climate.png', dpi=300, transparent=True)
     plt.clf()
 
 
@@ -257,9 +257,9 @@ def MakeProfilesByCluster():
     # plt.show()
     plt.xlabel('Year')
     plt.ylabel('Transient snow line altitude (m a.s.l.)')
-    plt.savefig(DataDirectory+'subplots_clustered.png', dpi=300)
+    plt.savefig(DataDirectory+'subplots_clustered.png', dpi=300, transparent=True)
 
 DataDirectory = '../data/'
 MakeBoxPlotByCluster()
-# ReadClimateData()
+ReadClimateData()
 #MakeProfilesByCluster()
